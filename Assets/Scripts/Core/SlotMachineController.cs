@@ -1,3 +1,5 @@
+
+using System.Collections;
 using UnityEngine;
 
 public class SlotMachineController : MonoBehaviour
@@ -7,6 +9,16 @@ public class SlotMachineController : MonoBehaviour
 
     [Header("Systems")]
     [SerializeField] private SlotResultGenerator resultGenerator;
+
+    [ContextMenu("Generate Random Result")]
+    public void GenerateRandomResult()
+    {
+        for (int i = 0; i < reels.Length; i++)
+        {
+            SymbolType[] reelSymbols = resultGenerator.GenerateResult(3);
+            reels[i].SetSymbols(reelSymbols);
+        }
+    }
 
     [ContextMenu("Start All Reels")]
     public void StartAllReels()
@@ -26,13 +38,34 @@ public class SlotMachineController : MonoBehaviour
         }
     }
 
-    [ContextMenu("Generate Random Result")]
-    public void GenerateRandomResult()
+    [ContextMenu("Spin Machine")]
+    public void SpinMachine()
     {
+        SymbolType[][] results = new SymbolType[reels.Length][];
+
+        // Generate the complete outcome before spinning.
         for (int i = 0; i < reels.Length; i++)
         {
-            SymbolType[] reelSymbols = resultGenerator.GenerateResult(3);
-            reels[i].SetSymbols(reelSymbols);
+            results[i] = resultGenerator.GenerateResult(3);
+        }
+
+        StartCoroutine(SpinRoutine(results));
+    }
+
+    private IEnumerator SpinRoutine(SymbolType[][] results)
+    {
+        // Start all reels.
+        StartAllReels();
+
+        // Let the reels spin for a while.
+        yield return new WaitForSeconds(2f);
+
+        // Stop reels one after another.
+        for (int i = 0; i < reels.Length; i++)
+        {
+            reels[i].StopAtResult(results[i]);
+
+            yield return new WaitForSeconds(0.5f);
         }
     }
 }

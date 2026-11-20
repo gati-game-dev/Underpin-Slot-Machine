@@ -1,3 +1,5 @@
+
+using System.Collections;
 using UnityEngine;
 
 public class ReelController : MonoBehaviour
@@ -5,24 +7,18 @@ public class ReelController : MonoBehaviour
     [Header("Reel Configuration")]
     [SerializeField] private SymbolView[] symbols;
 
-    public SymbolView[] Symbols => symbols;
-
-    public SymbolType MiddleSymbol => symbols[1].CurrentSymbol;
-
     [Header("Spin Settings")]
     [SerializeField] private float spinSpeed = 5f;
     [SerializeField] private float symbolSpacing = 1.2f;
     [SerializeField] private float recycleThreshold = -2f;
 
+    private float currentSpeed;
     private bool isSpinning;
 
-    [ContextMenu("Test Symbol Assignment")]
-    private void TestSymbolAssignment()
-    {
-        symbols[0].SetSymbol(SymbolType.RedSeven);
-        symbols[1].SetSymbol(SymbolType.Cherries);
-        symbols[2].SetSymbol(SymbolType.Bell);
-    }
+    public SymbolView[] Symbols => symbols;
+
+    public SymbolType MiddleSymbol => symbols[1].CurrentSymbol;
+
     public void SetMiddleSymbol(SymbolType symbol)
     {
         symbols[1].SetSymbol(symbol);
@@ -50,7 +46,7 @@ public class ReelController : MonoBehaviour
         foreach (SymbolView symbol in symbols)
         {
             symbol.transform.localPosition +=
-                Vector3.down * spinSpeed * Time.deltaTime;
+                Vector3.down * currentSpeed * Time.deltaTime;
         }
 
         RecycleBottomSymbol();
@@ -90,6 +86,7 @@ public class ReelController : MonoBehaviour
     [ContextMenu("Start Spinning")]
     public void StartSpinning()
     {
+        currentSpeed = spinSpeed;
         isSpinning = true;
     }
 
@@ -97,5 +94,62 @@ public class ReelController : MonoBehaviour
     public void StopSpinning()
     {
         isSpinning = false;
+        currentSpeed = 0f;
+    }
+
+    public void StopAtResult(SymbolType[] targetSymbols)
+    {
+        if (targetSymbols.Length != symbols.Length)
+        {
+            Debug.LogError("Target result does not match reel configuration!");
+            return;
+        }
+
+        StartCoroutine(StopRoutine(targetSymbols));
+    }
+
+    private IEnumerator StopRoutine(SymbolType[] targetSymbols)
+    {
+        float decelerationDuration = 1.5f;
+        float elapsedTime = 0f;
+
+        float startingSpeed = currentSpeed;
+
+        while (elapsedTime < decelerationDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            float progress = Mathf.Clamp01(
+                elapsedTime / decelerationDuration
+            );
+
+            currentSpeed = Mathf.Lerp(startingSpeed, 0f, progress);
+
+            yield return null;
+        }
+
+        // Completely stop the reel.
+        currentSpeed = 0f;
+        isSpinning = false;
+
+        // Sort symbols from top to bottom.
+        System.Array.Sort(symbols, (a, b) =>
+            b.transform.localPosition.y.CompareTo(
+                a.transform.localPosition.y
+            )
+        );
+
+        // Align all three symbols.
+        for (int i = 0; i < symbols.Length; i++)
+        {
+            Vector3 position = symbols[i].transform.localPosition;
+
+            position.y = -i * symbolSpacing;
+
+            symbols[i].transform.localPosition = position;
+        }
+
+        // Apply the predetermined result.
+        SetSymbols(targetSymbols);
     }
 }
