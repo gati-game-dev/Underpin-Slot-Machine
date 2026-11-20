@@ -9,6 +9,12 @@ public class ReelController : MonoBehaviour
 
     public SymbolType MiddleSymbol => symbols[1].CurrentSymbol;
 
+    [Header("Spin Settings")]
+    [SerializeField] private float spinSpeed = 5f;
+    [SerializeField] private float symbolSpacing = 1.2f;
+    [SerializeField] private float recycleThreshold = -2f;
+
+    private bool isSpinning;
 
     [ContextMenu("Test Symbol Assignment")]
     private void TestSymbolAssignment()
@@ -34,5 +40,62 @@ public class ReelController : MonoBehaviour
         {
             symbols[i].SetSymbol(newSymbols[i]);
         }
+    }
+
+    private void Update()
+    {
+        if (!isSpinning)
+            return;
+
+        foreach (SymbolView symbol in symbols)
+        {
+            symbol.transform.localPosition +=
+                Vector3.down * spinSpeed * Time.deltaTime;
+        }
+
+        RecycleBottomSymbol();
+    }
+
+    private void RecycleBottomSymbol()
+    {
+        SymbolView lowestSymbol = symbols[0];
+        SymbolView highestSymbol = symbols[0];
+
+        foreach (SymbolView symbol in symbols)
+        {
+            if (symbol.transform.localPosition.y <
+                lowestSymbol.transform.localPosition.y)
+            {
+                lowestSymbol = symbol;
+            }
+
+            if (symbol.transform.localPosition.y >
+                highestSymbol.transform.localPosition.y)
+            {
+                highestSymbol = symbol;
+            }
+        }
+
+        if (lowestSymbol.transform.localPosition.y <= recycleThreshold)
+        {
+            Vector3 newPosition = lowestSymbol.transform.localPosition;
+
+            newPosition.y =
+                highestSymbol.transform.localPosition.y + symbolSpacing;
+
+            lowestSymbol.transform.localPosition = newPosition;
+        }
+    }
+
+    [ContextMenu("Start Spinning")]
+    public void StartSpinning()
+    {
+        isSpinning = true;
+    }
+
+    [ContextMenu("Stop Spinning")]
+    public void StopSpinning()
+    {
+        isSpinning = false;
     }
 }

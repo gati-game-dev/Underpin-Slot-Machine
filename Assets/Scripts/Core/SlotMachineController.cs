@@ -8,6 +8,24 @@ public class SlotMachineController : MonoBehaviour
     [Header("Systems")]
     [SerializeField] private SlotResultGenerator resultGenerator;
 
+    [ContextMenu("Start All Reels")]
+    public void StartAllReels()
+    {
+        foreach (ReelController reel in reels)
+        {
+            reel.StartSpinning();
+        }
+    }
+
+    [ContextMenu("Stop All Reels")]
+    public void StopAllReels()
+    {
+        foreach (ReelController reel in reels)
+        {
+            reel.StopSpinning();
+        }
+    }
+
     [ContextMenu("Generate Random Result")]
     public void GenerateRandomResult()
     {
