@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1576715247061745602}
   - component: {fileID: 8042243429902701112}
+  - component: {fileID: -2052412604327266476}
   m_Layer: 0
-  m_Name: Symbol_Middle
+  m_Name: SlotSymbol
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -92,3 +93,20 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
+--- !u!114 &-2052412604327266476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4228901945859602246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6462546101b2c944ba23be710779d098, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SymbolView
+  redSevenSprite: {fileID: 2193077994593488821, guid: e77af77192fb6eb45908609c7d8b074f, type: 3}
+  cherriesSprite: {fileID: -5620835742497143143, guid: 372fbd58c4df35a459b4b2b1d939d3cb, type: 3}
+  bellSprite: {fileID: -2391669244243282240, guid: 3334d7f4bcc62734bb2e065cf5cdf727, type: 3}
+  barSprite: {fileID: -4945717182177459964, guid: 025c014dd59a7094c8c1779019730c21, type: 3}
+  spriteRenderer: {fileID: 8042243429902701112}
