@@ -25,6 +25,7 @@ public class ReelController : MonoBehaviour
     public SymbolView[] Symbols => symbols;
     public bool IsSpinning => isSpinning;
 
+    // Returns the symbol currently positioned in the middle row of the reel.
     public SymbolType MiddleSymbol
     {
         get
@@ -40,6 +41,7 @@ public class ReelController : MonoBehaviour
         orderedSymbols[1].SetSymbol(symbol);
     }
 
+    // Assigns symbols according to their current vertical order (top to bottom).
     public void SetSymbols(SymbolType[] newSymbols)
     {
         if (newSymbols == null || newSymbols.Length != symbols.Length)
@@ -67,16 +69,20 @@ public class ReelController : MonoBehaviour
         {
             float deltaTime = Time.deltaTime;
 
+            // Calculate the distance travelled during this frame while decelerating.
+            // This uses the standard distance formula for constant deceleration.
             movementDistance =
                 currentSpeed * deltaTime -
                 0.5f * stopDeceleration * deltaTime * deltaTime;
 
+            // Prevent the reel from moving farther than its remaining stopping distance.
             movementDistance = Mathf.Clamp(
                 movementDistance,
                 0f,
                 remainingStopDistance
             );
 
+            // Gradually reduce the reel's speed until it reaches zero.
             currentSpeed = Mathf.Max(
                 0f,
                 currentSpeed - stopDeceleration * deltaTime
@@ -86,6 +92,7 @@ public class ReelController : MonoBehaviour
         }
         else
         {
+            // Move at constant speed while the reel is in its normal spinning phase.
             movementDistance = currentSpeed * Time.deltaTime;
         }
 
@@ -95,6 +102,7 @@ public class ReelController : MonoBehaviour
 
     private void MoveSymbols(float distance)
     {
+        // Move every symbol down by the same distance to maintain their spacing.
         foreach (SymbolView symbol in symbols)
         {
             symbol.transform.localPosition +=
@@ -107,6 +115,7 @@ public class ReelController : MonoBehaviour
         SymbolView lowestSymbol = symbols[0];
         SymbolView highestSymbol = symbols[0];
 
+        // Find the lowest and highest symbols based on their current local Y positions.
         foreach (SymbolView symbol in symbols)
         {
             if (symbol.transform.localPosition.y <
@@ -127,6 +136,8 @@ public class ReelController : MonoBehaviour
         {
             Vector3 newPosition = lowestSymbol.transform.localPosition;
 
+            // Move the lowest symbol above the highest one instead of creating a new object.
+            // This allows the reel to scroll continuously using the same three symbols.
             newPosition.y =
                 highestSymbol.transform.localPosition.y + symbolSpacing;
 
@@ -134,6 +145,9 @@ public class ReelController : MonoBehaviour
 
             if (isStopping)
             {
+                // Assign the predetermined stopping symbols as the reel completes
+                // its recycling cycles. The order ensures the final vertical layout
+                // matches the requested top, middle and bottom symbols.
                 int targetIndex =
                     symbols.Length - 1 -
                     (stopRecycleCount % symbols.Length);
@@ -142,6 +156,7 @@ public class ReelController : MonoBehaviour
 
                 stopRecycleCount++;
 
+                // Finish the animation after the required number of recycling cycles.
                 if (stopRecycleCount >= totalStopRecycles)
                 {
                     FinishStop();
@@ -152,8 +167,10 @@ public class ReelController : MonoBehaviour
 
     private SymbolView[] GetSymbolsInVerticalOrder()
     {
+        // Clone the array so sorting does not change the original symbols array.
         SymbolView[] orderedSymbols = (SymbolView[])symbols.Clone();
 
+        // Sort from highest Y position to lowest Y position (top to bottom).
         System.Array.Sort(
             orderedSymbols,
             (a, b) =>
@@ -196,10 +213,14 @@ public class ReelController : MonoBehaviour
         if (!isSpinning || isStopping)
             return;
 
+        // Store a copy of the target result so the final symbols remain fixed
+        // even if the original array is modified elsewhere.
         stoppingResult = (SymbolType[])targetSymbols.Clone();
 
         isStopping = true;
         stopRecycleCount = 0;
+
+        // Two complete recycling cycles provide enough movement for a gradual stop.
         totalStopRecycles = symbols.Length * 2;
 
         SymbolView lowestSymbol = symbols[0];
@@ -213,15 +234,20 @@ public class ReelController : MonoBehaviour
             }
         }
 
+        // Calculate how far the lowest symbol must travel before its first recycle.
         float distanceToFirstRecycle = Mathf.Max(
             0f,
             lowestSymbol.transform.localPosition.y - recycleThreshold
         );
 
+        // Include the remaining recycling cycles to determine the total
+        // distance the reel must travel before it can finish stopping.
         remainingStopDistance =
             distanceToFirstRecycle +
             (totalStopRecycles - 1) * symbolSpacing;
 
+        // Calculate the constant deceleration needed to bring the reel
+        // from its current speed to zero over the remaining stopping distance.
         stopDeceleration =
             (currentSpeed * currentSpeed) /
             (2f * remainingStopDistance);
@@ -235,6 +261,8 @@ public class ReelController : MonoBehaviour
 
         SymbolView[] orderedSymbols = GetSymbolsInVerticalOrder();
 
+        // Snap the symbols to their exact final positions to prevent
+        // small positional inaccuracies from accumulating during movement.
         for (int i = 0; i < orderedSymbols.Length; i++)
         {
             Vector3 position =
