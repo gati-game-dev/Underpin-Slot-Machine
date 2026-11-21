@@ -18,25 +18,38 @@ public class SlotMachineUI : MonoBehaviour
     [SerializeField] private Button bet50Button;
     [SerializeField] private Button bet100Button;
 
+    [Header("Bet Button Visuals")]
+    [SerializeField] private BetButtonVisual bet10Visual;
+    [SerializeField] private BetButtonVisual bet50Visual;
+    [SerializeField] private BetButtonVisual bet100Visual;
+
     private int previousBalance = -1;
     private int previousBet = -1;
 
     private void OnEnable()
     {
         if (slotMachineController != null)
+        {
+            slotMachineController.OnSpinStarted += ShowSpinning;
             slotMachineController.OnSpinCompleted += ShowResult;
+        }
     }
 
     private void OnDisable()
     {
         if (slotMachineController != null)
+        {
+            slotMachineController.OnSpinStarted -= ShowSpinning;
             slotMachineController.OnSpinCompleted -= ShowResult;
+        }
     }
 
     private void Start()
     {
         RefreshUI();
-        resultText.text = "GOOD LUCK!";
+
+        resultText.text = "PULL THE LEVER!";
+        resultText.color = new Color32(241, 187, 83, 255);
     }
 
     private void Update()
@@ -80,19 +93,31 @@ public class SlotMachineUI : MonoBehaviour
         bet50Button.interactable = balance >= 50;
         bet100Button.interactable = balance >= 100;
 
+        bet10Visual.SetSelected(bet == 10);
+        bet50Visual.SetSelected(bet == 50);
+        bet100Visual.SetSelected(bet == 100);
+
         previousBalance = balance;
         previousBet = bet;
+    }
+
+    private void ShowSpinning()
+    {
+        resultText.text = "SPINNING...";
+        ColorUtility.TryParseHtmlString("#F1BB53", out Color gold);
+        resultText.color = gold;
     }
 
     private void ShowResult(bool isWin, int payout)
     {
         if (isWin)
         {
-            resultText.text = "YOU WON! +" + payout + " COINS";
+            resultText.text = "JACKPOT! +" + payout + " COINS";
+            resultText.color = new Color32(241, 187, 83, 255);
         }
         else
         {
-            resultText.text = "TRY AGAIN!";
+            resultText.text = "NO WIN - TRY AGAIN!";
             resultText.color = Color.tomato;
         }
     }

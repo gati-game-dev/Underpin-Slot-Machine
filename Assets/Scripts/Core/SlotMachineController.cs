@@ -12,12 +12,16 @@ public class SlotMachineController : MonoBehaviour
     [SerializeField] private SlotResultGenerator resultGenerator;
     [SerializeField] private BalanceManager balanceManager;
 
+    public event Action OnSpinStarted;
     public event Action<bool, int> OnSpinCompleted;
 
     private WinEvaluator winEvaluator = new WinEvaluator();
     private PayoutCalculator payoutCalculator = new PayoutCalculator();
 
     private bool isSpinInProgress;
+    public bool IsSpinInProgress => isSpinInProgress;
+    public bool CanStartSpin =>
+    !isSpinInProgress && balanceManager != null && balanceManager.CanAffordBet;
 
     [ContextMenu("Generate Random Result")]
     public void GenerateRandomResult()
@@ -53,6 +57,8 @@ public class SlotMachineController : MonoBehaviour
             return;
 
         isSpinInProgress = true;
+
+        OnSpinStarted?.Invoke();
 
         SymbolType[][] results = new SymbolType[reels.Length][];
 
@@ -99,6 +105,7 @@ public class SlotMachineController : MonoBehaviour
             );
 
             balanceManager.AddWinnings(payout);
+
             Debug.Log($"JACKPOT! You won {payout} coins!");
         }
         else
