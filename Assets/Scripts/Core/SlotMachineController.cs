@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ public class SlotMachineController : MonoBehaviour
     [SerializeField] private SlotResultGenerator resultGenerator;
     [SerializeField] private BalanceManager balanceManager;
 
+    public event Action<bool, int> OnSpinCompleted;
+
     private WinEvaluator winEvaluator = new WinEvaluator();
     private PayoutCalculator payoutCalculator = new PayoutCalculator();
 
@@ -21,9 +24,7 @@ public class SlotMachineController : MonoBehaviour
     {
         for (int i = 0; i < reels.Length; i++)
         {
-            SymbolType[] reelSymbols =
-                resultGenerator.GenerateResult(3);
-
+            SymbolType[] reelSymbols = resultGenerator.GenerateResult(3);
             reels[i].SetSymbols(reelSymbols);
         }
     }
@@ -32,40 +33,31 @@ public class SlotMachineController : MonoBehaviour
     public void StartAllReels()
     {
         foreach (ReelController reel in reels)
-        {
             reel.StartSpinning();
-        }
     }
 
     [ContextMenu("Stop All Reels")]
     public void StopAllReels()
     {
         foreach (ReelController reel in reels)
-        {
             reel.StopSpinning();
-        }
     }
 
     [ContextMenu("Spin Machine")]
     public void SpinMachine()
     {
-        // Prevent multiple simultaneous spins.
         if (isSpinInProgress)
             return;
 
-        // Deduct the bet before starting.
         if (!balanceManager.TryPlaceBet())
             return;
 
         isSpinInProgress = true;
 
-        // Generate the complete outcome before spinning.
         SymbolType[][] results = new SymbolType[reels.Length][];
 
         for (int i = 0; i < reels.Length; i++)
-        {
             results[i] = resultGenerator.GenerateResult(3);
-        }
 
         StartCoroutine(SpinRoutine(results));
     }
@@ -73,25 +65,19 @@ public class SlotMachineController : MonoBehaviour
     private IEnumerator SpinRoutine(SymbolType[][] results)
     {
         StartAllReels();
-
         yield return new WaitForSeconds(2f);
 
-        // Stop each reel sequentially.
         for (int i = 0; i < reels.Length; i++)
         {
             reels[i].StopAtResult(results[i]);
 
-            // Wait until the current reel has actually stopped.
             while (reels[i].IsSpinning)
-            {
                 yield return null;
-            }
 
             yield return new WaitForSeconds(0.2f);
         }
 
         EvaluateResult();
-
         isSpinInProgress = false;
     }
 
@@ -100,34 +86,26 @@ public class SlotMachineController : MonoBehaviour
         SymbolType[] middleSymbols = new SymbolType[reels.Length];
 
         for (int i = 0; i < reels.Length; i++)
-        {
             middleSymbols[i] = reels[i].MiddleSymbol;
-        }
 
-        Debug.Log(
-            $"MIDDLE ROW: " +
-            $"{middleSymbols[0]} | " +
-            $"{middleSymbols[1]} | " +
-            $"{middleSymbols[2]}"
-        );
-
-        bool isWin =
-            winEvaluator.IsWinningCombination(middleSymbols);
+        bool isWin = winEvaluator.IsWinningCombination(middleSymbols);
+        int payout = 0;
 
         if (isWin)
         {
-            int payout = payoutCalculator.CalculatePayout(
+            payout = payoutCalculator.CalculatePayout(
                 middleSymbols,
                 balanceManager.CurrentBet
             );
 
             balanceManager.AddWinnings(payout);
-
             Debug.Log($"JACKPOT! You won {payout} coins!");
         }
         else
         {
             Debug.Log("No win. Better luck next time!");
         }
+
+        OnSpinCompleted?.Invoke(isWin, payout);
     }
 }
