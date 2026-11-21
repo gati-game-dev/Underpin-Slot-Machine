@@ -1,25 +1,29 @@
 # 🎰 Slot Machine Game
 
-A 2D slot machine game developed in **Unity 6** as part of the Underpin Services Unity Game Development Assignment.
+A 2D slot machine game developed in **Unity 6** as part of the Underpin Services game development assignment.
 
-## 🎮 Game Overview
+The game features three animated reels, weighted random symbol generation, betting, balance management, and a payout system.
 
-The game features a three-reel slot machine with four different symbols. Players select their bet, pull the lever, and try to land matching symbols to win coins.
+## 🎮 Gameplay Demo
 
-The game uses weighted random symbol generation, smooth reel animations, sequential reel stopping, and a balance and payout system.
+<p align="center">
+  <img src="GIFs/Gameplay.gif" alt="Slot Machine Gameplay" width="750">
+</p>
 
 ## ✨ Features
 
-- **Three spinning reels:** Each reel displays three symbols at a time.
-- **Winning combinations:** Matching all three symbols on the middle horizontal payline results in a win.
-- **Weighted RNG:** Different symbols have different probabilities of appearing.
-- **Smooth reel animations:** Reels scroll vertically, decelerate, and stop sequentially.
-- **Bet selection:** Players can choose between 10, 50, and 100 coins.
-- **Balance management:** Bets are deducted when a spin begins, and winnings are added to the balance.
-- **Payout system:** Different symbols have different payout multipliers.
-- **Interactive lever:** Clicking the lever initiates a spin.
+- **Three animated reels** with smooth vertical spinning and deceleration.
+- **Sequential reel stopping** to create a realistic slot machine experience.
+- **Weighted Random Number Generation (RNG)** to control symbol probabilities.
+- **Winning combinations** when all three symbols on the middle horizontal row match.
+- **Bet selection** with three available options: 10, 50, and 100 coins.
+- **Balance management** with automatic bet deduction and winnings.
+- **Payout system** with different multipliers for each symbol.
+- **Interactive lever** to start the slot machine.
 
-## 🎲 Symbol Probabilities & Payouts
+## 🎲 Symbol Probabilities and Payouts
+
+The game uses weighted random generation to determine the symbols on each reel.
 
 | Symbol | Probability | Payout Multiplier |
 |---|---:|---:|
@@ -28,79 +32,78 @@ The game uses weighted random symbol generation, smooth reel animations, sequent
 | Bell | 30% | 3x |
 | BAR | 40% | 2x |
 
-The probability values are implemented using weights in the symbol result generator. Each reel generates its result independently.
+The player wins when all three symbols on the **middle horizontal row** match.
 
-A win occurs when all three symbols on the middle horizontal row match.
+The payout is calculated using:
+
+`Payout = Current Bet × Symbol Multiplier`
+
+The starting balance is **1,000 coins**.
 
 ## 🕹️ How to Play
 
-1. Start the game with an initial balance of 1,000 coins.
-2. Select a bet amount: 10, 50, or 100 coins.
-3. Click the lever to spin the reels.
-4. Wait for the reels to stop.
-5. If all three middle-row symbols match, receive the corresponding payout.
-6. Continue playing while you have sufficient balance.
+1. Select a bet amount (10, 50, or 100 coins).
+2. Pull the lever to start a spin.
+3. Wait for the three reels to stop sequentially.
+4. If all three middle-row symbols match, the corresponding payout is added to your balance.
+5. Otherwise, the bet is lost.
 
-## 🛠️ Technical Implementation
+## 🛠️ Built With
 
-**Engine:** Unity 6
+- Unity 6
+- C#
+- Unity 2D
+- TextMeshPro
 
-**Architecture:**
+## 🏗️ Project Architecture
 
-- `SlotMachineController` – Coordinates spins, reel stopping, and result evaluation.
-- `ReelController` – Handles symbol movement, recycling, deceleration, and stopping.
-- `SlotResultGenerator` – Generates randomized symbol outcomes using weighted probabilities.
-- `WinEvaluator` – Checks whether the middle-row symbols form a winning combination.
-- `PayoutCalculator` – Calculates winnings based on the matched symbol and bet.
-- `BalanceManager` – Manages player balance, bets, and winnings.
-- `SymbolView` – Controls the displayed sprite for each symbol.
-- `SlotMachineUI` – Updates balance, bet selection, and spin result messages.
-- `BetButtonVisual` – Handles bet button selection and hover visuals.
-- `LeverController` – Handles lever interaction and its pull animation.
+The project is organized into separate systems to keep responsibilities clear and maintainable.
 
-The project uses object-oriented design principles to separate gameplay systems, reel behaviour, and UI responsibilities.
+| Script | Responsibility |
+|---|---|
+| `SlotMachineController` | Coordinates the spin process and evaluates the final result. |
+| `ReelController` | Handles reel movement, animation, and stopping behaviour. |
+| `SlotResultGenerator` | Generates symbols using weighted random probabilities. |
+| `WinEvaluator` | Checks whether the middle-row symbols form a winning combination. |
+| `PayoutCalculator` | Calculates winnings based on the selected bet and symbol multiplier. |
+| `BalanceManager` | Manages the player's balance and bet deductions. |
+| `SymbolView` | Updates the visual representation of a symbol. |
+| `SlotMachineUI` | Handles the game's user interface. |
+| `BetButtonVisual` | Handles the visual state of bet selection buttons. |
+| `LeverController` | Handles interaction with the slot machine lever. |
 
 ## 📁 Project Structure
 
 ```text
-Assets/
-├── Animations/
-├── Art/
-│   ├── Background/
-│   ├── Machine/
-│   ├── Symbols/
-│   └── UI/
-├── Prefabs/
-│   └── Symbols/
-├── Scenes/
-├── Scripts/
-│   ├── Core/
-│   ├── Gameplay/
-│   ├── Reels/
-│   └── UI/
-└── UI/
+UnderpinSlotMachine/
+├── Assets/
+│   ├── Animations/
+│   ├── Art/
+│   │   ├── Background/
+│   │   ├── Machine/
+│   │   ├── Symbols/
+│   │   └── UI/
+│   ├── Prefabs/
+│   │   └── Symbols/
+│   ├── Scenes/
+│   ├── Scripts/
+│   │   ├── Core/
+│   │   ├── Gameplay/
+│   │   ├── Reels/
+│   │   └── UI/
+│   └── Settings/
+├── Build/
+│   └── WebGL/
+├── Screenshots/
+│   └── Gameplay.gif
+├── Packages/
+└── ProjectSettings/
 ```
 
-## 🌐 Running the WebGL Build
+## 🌐 WebGL Build
 
-1. Open the GitHub repository.
-2. Navigate to `Build/WebGL`.
-3. Use the hosted WebGL build link, if available, or download the build.
-4. To run a downloaded build locally, serve the folder using a local HTTP server rather than opening `index.html` directly.
+A WebGL build is included in the repository:
 
-## 💡 Development Approach
+`Build/WebGL/`
 
-The project was developed by separating the slot machine into independent systems for random result generation, reel movement, winning condition evaluation, payouts, and balance management.
-
-The reel animation uses symbol recycling to create continuous vertical movement. During stopping, the reel decelerates and aligns the symbols into their final positions.
-
-Weighted random generation was introduced to make high-value symbols less frequent than lower-value symbols, creating a more varied slot machine experience.
-
-The focus was on implementing the core gameplay loop, maintaining readable and modular code, and creating a functional user interface.
-
-## 🚀 Built With
-
-- Unity 6
-- C#
-- TextMesh Pro
-- Git & GitHub
+To run the build locally
