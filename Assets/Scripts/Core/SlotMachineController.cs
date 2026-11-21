@@ -10,12 +10,16 @@ public class SlotMachineController : MonoBehaviour
     [Header("Systems")]
     [SerializeField] private SlotResultGenerator resultGenerator;
 
+    private WinEvaluator winEvaluator = new WinEvaluator();
+
     [ContextMenu("Generate Random Result")]
     public void GenerateRandomResult()
     {
         for (int i = 0; i < reels.Length; i++)
         {
-            SymbolType[] reelSymbols = resultGenerator.GenerateResult(3);
+            SymbolType[] reelSymbols =
+                resultGenerator.GenerateResult(3);
+
             reels[i].SetSymbols(reelSymbols);
         }
     }
@@ -54,18 +58,55 @@ public class SlotMachineController : MonoBehaviour
 
     private IEnumerator SpinRoutine(SymbolType[][] results)
     {
-        // Start all reels.
         StartAllReels();
 
-        // Let the reels spin for a while.
         yield return new WaitForSeconds(2f);
 
-        // Stop reels one after another.
+        // Stop each reel sequentially.
         for (int i = 0; i < reels.Length; i++)
         {
             reels[i].StopAtResult(results[i]);
 
-            yield return new WaitForSeconds(0.5f);
+            // Wait until this reel has actually stopped.
+            while (reels[i].IsSpinning)
+            {
+                yield return null;
+            }
+
+            // Small pause before stopping the next reel.
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        // Evaluate only after every reel has stopped.
+        EvaluateResult();
+    }
+
+    private void EvaluateResult()
+    {
+        SymbolType[] middleSymbols = new SymbolType[reels.Length];
+
+        for (int i = 0; i < reels.Length; i++)
+        {
+            middleSymbols[i] = reels[i].MiddleSymbol;
+        }
+
+        Debug.Log(
+            $"EVALUATED MIDDLE ROW: " +
+            $"{middleSymbols[0]} | " +
+            $"{middleSymbols[1]} | " +
+            $"{middleSymbols[2]}"
+        );
+
+        bool isWin =
+            winEvaluator.IsWinningCombination(middleSymbols);
+
+        if (isWin)
+        {
+            Debug.Log("JACKPOT! All three middle symbols match!");
+        }
+        else
+        {
+            Debug.Log("No win. Better luck next time!");
         }
     }
 }
