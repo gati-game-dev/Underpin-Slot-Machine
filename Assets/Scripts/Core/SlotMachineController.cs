@@ -9,8 +9,12 @@ public class SlotMachineController : MonoBehaviour
 
     [Header("Systems")]
     [SerializeField] private SlotResultGenerator resultGenerator;
+    [SerializeField] private BalanceManager balanceManager;
 
     private WinEvaluator winEvaluator = new WinEvaluator();
+    private PayoutCalculator payoutCalculator = new PayoutCalculator();
+
+    private bool isSpinInProgress;
 
     [ContextMenu("Generate Random Result")]
     public void GenerateRandomResult()
@@ -45,9 +49,19 @@ public class SlotMachineController : MonoBehaviour
     [ContextMenu("Spin Machine")]
     public void SpinMachine()
     {
-        SymbolType[][] results = new SymbolType[reels.Length][];
+        // Prevent multiple simultaneous spins.
+        if (isSpinInProgress)
+            return;
+
+        // Deduct the bet before starting.
+        if (!balanceManager.TryPlaceBet())
+            return;
+
+        isSpinInProgress = true;
 
         // Generate the complete outcome before spinning.
+        SymbolType[][] results = new SymbolType[reels.Length][];
+
         for (int i = 0; i < reels.Length; i++)
         {
             results[i] = resultGenerator.GenerateResult(3);
@@ -67,18 +81,18 @@ public class SlotMachineController : MonoBehaviour
         {
             reels[i].StopAtResult(results[i]);
 
-            // Wait until this reel has actually stopped.
+            // Wait until the current reel has actually stopped.
             while (reels[i].IsSpinning)
             {
                 yield return null;
             }
 
-            // Small pause before stopping the next reel.
             yield return new WaitForSeconds(0.2f);
         }
 
-        // Evaluate only after every reel has stopped.
         EvaluateResult();
+
+        isSpinInProgress = false;
     }
 
     private void EvaluateResult()
@@ -91,7 +105,7 @@ public class SlotMachineController : MonoBehaviour
         }
 
         Debug.Log(
-            $"EVALUATED MIDDLE ROW: " +
+            $"MIDDLE ROW: " +
             $"{middleSymbols[0]} | " +
             $"{middleSymbols[1]} | " +
             $"{middleSymbols[2]}"
@@ -102,7 +116,14 @@ public class SlotMachineController : MonoBehaviour
 
         if (isWin)
         {
-            Debug.Log("JACKPOT! All three middle symbols match!");
+            int payout = payoutCalculator.CalculatePayout(
+                middleSymbols,
+                balanceManager.CurrentBet
+            );
+
+            balanceManager.AddWinnings(payout);
+
+            Debug.Log($"JACKPOT! You won {payout} coins!");
         }
         else
         {
